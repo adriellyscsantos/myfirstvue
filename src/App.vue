@@ -1,74 +1,102 @@
 <template>
-  <div>
-    <h1 v-bind:style="{ textDecoration: decoration }">Hello {{ name }}</h1>
-  </div>
-  <input type="text" v-model="name" />
+    <h1 v-bind:style="{ textDecoration: state.decoration }">
+      Hello {{ state.name }}
+    </h1>
+  <input type="text" v-model="state.name" />
   <br />
   <br />
-  <a :href="link" target="_blank"> Veja o meu github! </a>
+  <a :href="state.link" target="_blank"> Veja o meu github! </a>
   <h1>Minha lista de coisas</h1>
-  <button @click="handleShowHideList()"> Ver a lista</button>
-  <ul v-if="showList">
-    <li 
-    v-for="(task, index) in tasks" 
-    @dblclick="complete(task)"
-    :key="`${task}-${index}`"
-    :class="{'line-through': !task.isDone}"
-    class='task-item'
+  <button @click="handleShowHideList()">Ver a lista</button>
+  <ul v-if="state.showList">
+    <li
+      v-for="(task, index) in state.tasks"
+      @dblclick="complete(task)"
+      :key="`${task}-${index}`"
+      :class="{ 'line-through': task.isDone }"
+      class="task-item"
     >
       {{ task.title }}
-      <button @click="remove(task)"> &times; </button>
+      <button @click="remove(task)">&times;</button>
     </li>
   </ul>
-  <p v-else> Lista escondida </p>
-
-  <input type="text" v-focus />
+  <p v-else>Lista escondida</p>
+  <h1>Adicione sua lista de coisas!</h1>
+  <input
+    type="text  v-focus"
+    v-model="state.currentTask"
+    @keyup.enter="add()"
+  />
 </template>
 
 <script>
-const focus = (el) =>{
+import { reactive } from "vue";
+
+function focus(el) {
   el.focus();
 }
+
 export default {
   directives: { focus },
-  data: () => ({
-    name: "Adrielly",
-    decoration: "underline",
-    link: "https://github.com/adriellyscsantos",
-    showList: false,
-    tasks: [
-      { title: "HTML", isDone: "false" },
-      { title: "CSS", isDone: "false" },
-      { title: "JAVASCRIPT", isDone: "false" },
-      { title: "REACT", isDone: "false" },
-    ],
-  }),
-  methods: {
-    handleShowHideList() {
-    this.showList = !this.showList
-    },
-    remove(task) {
-      this.tasks = this.tasks.filter(t => t.title !== task.title)
-      // console.log('task', task)
-    },
-    complete(task){
-      this.tasks = this.tasks.map(t=>{
-        if(t.title === task.title){
-          return {...t, isDone: !t.isDone}
-          }
-          return {...t}
-      })
-    }
-  }
+
+  setup() {
+    // Definindo os dados reativos
+    const state = reactive({
+      name: "Adrielly",
+      decoration: "underline",
+      link: "https://github.com/adriellyscsantos",
+      showList: false,
+      tasks: [
+        { title: "HTML", isDone: false },
+        { title: "CSS", isDone: false },
+        { title: "JAVASCRIPT", isDone: false },
+        { title: "REACT", isDone: false },
+      ],
+      currentTask: "",
+    });
+
+    // Método para alternar a visibilidade da lista
+    const handleShowHideList = () => {
+      state.showList = !state.showList;
+    };
+
+    // Método para adicionar uma nova tarefa
+    const add = () => {
+      if (state.currentTask.trim() === "") return; // Prevenindo tarefas vazias
+      state.tasks.push({ title: state.currentTask, isDone: false });
+      state.currentTask = "";
+    };
+
+    // Método para remover uma tarefa
+    const remove = (task) => {
+      state.tasks = state.tasks.filter((t) => t.title !== task.title);
+    };
+
+    // Método para completar uma tarefa
+    const complete = (task) => {
+      state.tasks = state.tasks.map((t) =>
+        t.title === task.title ? { ...t, isDone: !t.isDone } : t
+      );
+    };
+
+    // Retornar tudo o que será usado no template
+    return {
+      state,
+      handleShowHideList,
+      add,
+      remove,
+      complete,
+    };
+  },
 };
 </script>
 
 <style>
-.line-through{
+.line-through {
   text-decoration: line-through;
 }
 
-.task-item{
+.task-item {
   cursor: pointer;
 }
 </style>
